@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>AI Constructor Interpreter V2.6 (Native Key)</title>
+    <title>AI Constructor Interpreter V2.7 (Full Free)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Kanit', sans-serif; background-color: #f1f5f9; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
         .chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-        .bubble { max-width: 85%; padding: 12px 16px; border-radius: 20px; font-weight: 500; }
+        .bubble { max-width: 85%; padding: 12px 16px; border-radius: 20px; font-weight: 500; font-size: 1.1rem; }
         .user-bubble { align-self: flex-end; color: white; border-bottom-right-radius: 4px; background: linear-gradient(135deg, #f97316, #ea580c); }
         .ai-bubble { align-self: flex-start; background: white; color: #1e293b; border-bottom-left-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .btn-mic { transition: all 0.2s; cursor: pointer; }
-        .btn-mic:active { transform: scale(0.95); }
+        .btn-mic { transition: all 0.2s; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .btn-mic:active { transform: scale(0.95); opacity: 0.8; }
         #settings-modal { display: none; }
         #settings-modal.flex { display: flex; }
     </style>
@@ -23,10 +23,10 @@
 
     <header class="bg-orange-600 text-white p-4 shadow-lg flex justify-between items-center shrink-0">
         <div>
-            <h1 class="font-bold text-lg italic">AI เครื่องมือช่าง (Gemini 1.5)</h1>
-            <div id="api-status" class="text-[10px] flex items-center gap-1 opacity-80 uppercase">
+            <h1 class="font-bold text-lg">ล่ามร้านวัสดุ (Gemini Free)</h1>
+            <div id="api-status" class="text-[10px] flex items-center gap-1 opacity-80 uppercase tracking-widest">
                 <span id="status-dot" class="w-2 h-2 rounded-full bg-red-400"></span>
-                <span id="status-text-api">กรุณาตั้งค่า API KEY บนเครื่อง</span>
+                <span id="status-text-api">รอใส่ API KEY</span>
             </div>
         </div>
         <button onclick="toggleSettings()" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
@@ -37,46 +37,46 @@
     <main id="chat-box" class="chat-container"></main>
 
     <div class="bg-slate-900 text-green-400 p-2 text-[10px] font-mono shrink-0 flex justify-between">
-        <div id="log-monitor">Ready to translate...</div>
-        <div id="mode-badge" class="bg-green-900 text-[8px] px-2 py-0.5 rounded">LOCAL KEY MODE</div>
+        <div id="log-monitor">Ready (Free Version)</div>
+        <div class="opacity-50 text-[8px]">API KEY ON TABLET</div>
     </div>
 
     <footer class="bg-white p-4 border-t shadow-2xl shrink-0">
         <div class="max-w-xl mx-auto space-y-3">
-            <div id="action-status" class="text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">TAP TO SPEAK</div>
+            <div id="action-status" class="text-center text-[10px] font-bold text-slate-400 uppercase tracking-tighter">กดปุ่มเพื่อเริ่มพูด</div>
             
             <button onclick="startListening('th-TH', 'ไทย')" class="btn-mic w-full bg-orange-500 text-white py-5 rounded-2xl shadow-lg flex items-center justify-center gap-3">
                 <i class="fas fa-microphone text-2xl"></i>
-                <span class="text-xl font-bold">ฉันพูด (ไทย)</span>
+                <span class="text-xl font-bold uppercase tracking-tight">ฉันพูด (ไทย)</span>
             </button>
 
             <div class="grid grid-cols-2 gap-2">
                 <button onclick="startListening('en-US', 'English')" class="btn-mic bg-slate-800 text-white p-4 rounded-xl flex items-center justify-center gap-2">
-                    <span class="text-xl">🇺🇸</span> <span class="font-bold uppercase">ENG</span>
+                    <span class="text-xl">🇺🇸</span> <span class="text-sm font-bold uppercase">ENG</span>
                 </button>
                 <button onclick="startListening('my-MM', 'พม่า')" class="btn-mic bg-slate-100 border-2 border-slate-200 p-4 rounded-xl flex items-center justify-center gap-2 text-slate-700">
-                    <span class="text-xl">🇲🇲</span> <span class="font-bold uppercase text-xs">พม่า</span>
+                    <span class="text-xl">🇲🇲</span> <span class="text-sm font-bold uppercase">พม่า</span>
                 </button>
                 <button onclick="startListening('lo-LA', 'ลาว')" class="btn-mic bg-slate-100 border-2 border-slate-200 p-4 rounded-xl flex items-center justify-center gap-2 text-slate-700">
-                    <span class="text-xl">🇱🇦</span> <span class="font-bold uppercase text-xs">ลาว</span>
+                    <span class="text-xl">🇱🇦</span> <span class="text-sm font-bold uppercase">ลาว</span>
                 </button>
                 <button onclick="startListening('km-KH', 'เขมร')" class="btn-mic bg-slate-100 border-2 border-slate-200 p-4 rounded-xl flex items-center justify-center gap-2 text-slate-700">
-                    <span class="text-xl">🇰🇭</span> <span class="font-bold uppercase text-xs">เขมร</span>
+                    <span class="text-xl">🇰🇭</span> <span class="text-sm font-bold uppercase">เขมร</span>
                 </button>
             </div>
         </div>
     </footer>
 
     <div id="settings-modal" class="fixed inset-0 bg-black/60 items-center justify-center p-6 z-[100] backdrop-blur-sm">
-        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl">
-            <h3 class="font-bold text-lg mb-2">Tablet API Settings</h3>
-            <p class="text-xs text-gray-500 mb-4 font-light">คีย์นี้จะถูกเก็บไว้ในเครื่องของคุณเท่านั้น ไม่มีการส่งกลับไปยัง GitHub</p>
+        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl border border-orange-100">
+            <h3 class="font-bold text-lg mb-2 text-orange-600">ตั้งค่า API Key</h3>
+            <p class="text-[11px] text-gray-500 mb-4 font-light leading-relaxed">คีย์นี้จะถูกเก็บไว้ที่ <b>localStorage</b> บน Tablet เครื่องนี้เท่านั้น ปลอดภัยจากการถูกมองเห็นบน GitHub</p>
             
-            <label class="text-[10px] font-bold text-orange-600 block mb-1">GEMINI & GOOGLE CLOUD KEY</label>
-            <input type="password" id="api-key-input" class="w-full border p-4 rounded-xl mb-6 outline-none focus:border-orange-500 bg-slate-50" placeholder="ระบุ API Key ของคุณ">
+            <label class="text-[10px] font-bold text-slate-400 block mb-1 uppercase">AI Studio API Key</label>
+            <input type="password" id="api-key-input" class="w-full border p-4 rounded-xl mb-6 outline-none focus:border-orange-500 bg-slate-50 text-slate-800" placeholder="วาง API Key ที่นี่">
             
             <div class="flex gap-2">
-                <button onclick="saveKey()" class="flex-1 bg-orange-600 text-white py-4 rounded-xl font-bold shadow-md">บันทึก</button>
+                <button onclick="saveKey()" class="flex-1 bg-orange-600 text-white py-4 rounded-xl font-bold shadow-lg">บันทึก</button>
                 <button onclick="toggleSettings()" class="flex-1 bg-slate-100 py-4 rounded-xl text-slate-500 font-bold">ปิด</button>
             </div>
         </div>
@@ -103,19 +103,25 @@
             const txt = document.getElementById('status-text-api');
             if(GEMINI_KEY) {
                 dot.className = "w-2 h-2 rounded-full bg-green-400 shadow-[0_0_8px_#4ade80]";
-                txt.innerText = 'ONLINE (LOCAL STORAGE MODE)';
-            } else {
-                dot.className = "w-2 h-2 rounded-full bg-red-500";
-                txt.innerText = 'OFFLINE (WAITING FOR KEY)';
+                txt.innerText = 'ONLINE (FREE VERSION)';
             }
         }
 
         async function callAI(text, fromCode) {
-            if (!GEMINI_KEY) return "กรุณาตั้งค่า API Key ก่อน";
+            if (!GEMINI_KEY) return "กรุณาใส่ API Key";
             
             addLog("System: กำลังแปลด้วย Gemini...");
             const isThai = fromCode === 'th-TH';
-            const toLangName = isThai ? (targetLang === 'en-US' ? 'English' : targetLang) : 'Thai';
+            
+            let toLangName;
+            if (isThai) {
+                if(targetLang === 'en-US') toLangName = 'English';
+                else if(targetLang === 'my-MM') toLangName = 'Burmese';
+                else if(targetLang === 'lo-LA') toLangName = 'Lao';
+                else if(targetLang === 'km-KH') toLangName = 'Khmer';
+            } else {
+                toLangName = 'Thai';
+            }
             
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
             
@@ -124,70 +130,43 @@
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
-                        contents: [{ 
-                            parts: [{ 
-                                text: `You are a translator in a hardware/construction store. Translate this: "${text}" to ${toLangName}. Use professional but simple construction terms. Return ONLY the translation.` 
-                            }] 
-                        }]
+                        contents: [{ parts: [{ text: `Translate "${text}" to ${toLangName}. Context: Hardware store and construction site. Return ONLY the translation.` }] }]
                     })
                 });
 
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error?.message || "API Error");
                 return data.candidates[0].content.parts[0].text.trim();
-
             } catch(e) {
-                addLog("API Error: " + e.message);
-                return `(ผิดพลาด: ${e.message})`;
+                addLog("Error: " + e.message);
+                return `(การแปลผิดพลาด: ${e.message})`;
             }
         }
 
-        async function speak(text, langCode) {
+        function speak(text, langCode) {
             if (text.includes("ผิดพลาด")) return;
-
-            // 1. ลองใช้ Google Cloud TTS เพื่อเสียงที่สมจริง
-            try {
-                const url = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${GEMINI_KEY}`;
-                const res = await fetch(url, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        input: { text: text },
-                        voice: { languageCode: langCode, ssmlGender: 'NEUTRAL' },
-                        audioConfig: { audioEncoding: 'MP3' }
-                    })
-                });
-                
-                const data = await res.json();
-                if (data.audioContent) {
-                    const audio = new Audio("data:audio/mp3;base64," + data.audioContent);
-                    audio.play();
-                    addLog("System: Playing Pro Voice");
-                    return;
-                }
-            } catch (e) {
-                console.log("Cloud TTS failed, using browser voice.");
-            }
-
-            // 2. ถ้า Google Cloud TTS ไม่สำเร็จ ให้ใช้เสียงเบราว์เซอร์ปกติ
             const u = new SpeechSynthesisUtterance(text);
             u.lang = langCode;
+            u.rate = 1.0;
             window.speechSynthesis.speak(u);
-            addLog("System: Playing Standard Voice");
         }
 
         function startListening(code, name) {
             if(!GEMINI_KEY) { toggleSettings(); return; }
             
             const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!Speech) { alert("อุปกรณ์ไม่รองรับระบบเสียง"); return; }
+            if (!Speech) {
+                alert("เบราว์เซอร์ไม่รองรับ Speech Recognition");
+                return;
+            }
 
             const rec = new Speech();
             rec.lang = code;
             if(code !== 'th-TH') targetLang = code;
 
-            rec.onstart = () => { 
-                document.getElementById('action-status').innerText = `LISTENING (${name})...`; 
-                addLog(`กำลังรับฟังเสียงภาษา${name}...`);
+            rec.onstart = () => {
+                document.getElementById('action-status').innerText = `กำลังฟังภาษา${name}...`;
+                addLog(`Listening for ${name}`);
             };
 
             rec.onresult = async (e) => {
@@ -195,10 +174,10 @@
                 addBubble(msg, 'user', name);
                 
                 const translation = await callAI(msg, code);
-                const outLang = (code === 'th-TH' ? targetLang : 'ไทย');
+                const outLangLabel = (code === 'th-TH' ? targetLang.split('-')[0].toUpperCase() : 'THAI');
                 const outCode = (code === 'th-TH' ? targetLang : 'th-TH');
                 
-                addBubble(translation, 'ai', outLang);
+                addBubble(translation, 'ai', outLangLabel);
                 speak(translation, outCode);
                 document.getElementById('action-status').innerText = 'READY';
             };
@@ -211,7 +190,7 @@
             const box = document.getElementById('chat-box');
             const div = document.createElement('div');
             div.className = `bubble ${type === 'user' ? 'user-bubble' : 'ai-bubble'}`;
-            div.innerHTML = `<div class="text-[9px] opacity-60 font-bold mb-1 uppercase">${langLabel}</div><div>${text}</div>`;
+            div.innerHTML = `<div class="text-[9px] opacity-60 font-bold mb-1 uppercase tracking-wider">${langLabel}</div><div>${text}</div>`;
             box.appendChild(div);
             box.scrollTo({ top: box.scrollHeight, behavior: 'smooth' });
         }
