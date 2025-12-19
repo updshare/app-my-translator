@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>AI Constructor Interpreter V4.0 (Stable Model)</title>
+    <title>AI Constructor Interpreter V4.0 (Stable & Anti-Double)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
@@ -39,7 +38,7 @@
 
     <div class="bg-slate-900 text-green-400 p-2 text-[10px] font-mono shrink-0 flex justify-between">
         <div id="log-monitor">Ready to translate...</div>
-        <div id="active-model" class="bg-green-900 text-[8px] px-2 py-0.5 rounded uppercase font-bold italic">Check Model...</div>
+        <div id="active-model" class="bg-green-900 text-[8px] px-2 py-0.5 rounded uppercase font-bold italic">Checking Model...</div>
     </div>
 
     <footer class="bg-white p-4 border-t shadow-2xl shrink-0">
@@ -91,9 +90,9 @@
 
     <script>
         let GEMINI_KEY = localStorage.getItem('gemini_api_key') || '';
-        let CURRENT_MODEL = 'models/gemini-1.5-flash'; 
+        let CURRENT_MODEL = 'models/gemini-2.0-flash-exp'; // ล็อคโมเดลที่ใช้งานได้
         let targetLang = 'en-US';
-        let isProcessing = false;
+        let isProcessing = false; // ตัวแปรป้องกันการทำงานซ้อนกัน
 
         function addLog(msg) { document.getElementById('log-monitor').innerText = msg; }
         function toggleSettings() { document.getElementById('settings-modal').classList.toggle('flex'); }
@@ -103,16 +102,16 @@
             try {
                 const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_KEY}`);
                 const data = await res.json();
-                // เลือก 2.0 ก่อน ถ้าไม่มีใช้ 1.5
+                // พยายามค้นหา 2.0 ก่อน ถ้าไม่มีจึงถอยไป 1.5
                 const bestModel = data.models.find(m => m.name.includes('gemini-2.0-flash') || m.name.includes('gemini-1.5-flash'));
                 if (bestModel) {
                     CURRENT_MODEL = bestModel.name;
                     document.getElementById('active-model').innerText = CURRENT_MODEL.replace('models/', '');
-                    addLog("System: Connected to " + CURRENT_MODEL);
+                    addLog("System: โมเดลปัจจุบัน " + CURRENT_MODEL);
                 }
             } catch (e) { 
-                addLog("System: Use Default Model");
-                document.getElementById('active-model').innerText = "DEFAULT-1.5";
+                addLog("System: ใช้โมเดลพื้นฐาน");
+                document.getElementById('active-model').innerText = "gemini-2.0-flash-exp";
             }
         }
 
@@ -134,7 +133,7 @@
         }
 
         async function callAI(text, fromCode) {
-            if (!GEMINI_KEY) return "กรุณาใส่ API Key ในตั้งค่า";
+            if (!GEMINI_KEY) return "กรุณาใส่ API Key";
             const isThai = fromCode === 'th-TH';
             
             const langMap = {
@@ -144,7 +143,6 @@
             };
             
             const toLangName = isThai ? langMap[targetLang] : 'Thai';
-            // ใช้ CURRENT_MODEL ที่อัปเดตแล้วเสมอ
             const url = `https://generativelanguage.googleapis.com/v1beta/${CURRENT_MODEL}:generateContent?key=${GEMINI_KEY}`;
             
             try {
@@ -152,7 +150,7 @@
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
-                        contents: [{ parts: [{ text: `Translate "${text}" to ${toLangName}. Context: Hardware store. Return ONLY translation.` }] }]
+                        contents: [{ parts: [{ text: `Translate "${text}" to ${toLangName}. Context: Hardware store. Return ONLY translation text.` }] }]
                     })
                 });
                 const data = await res.json();
@@ -167,6 +165,8 @@
             if(!GEMINI_KEY || isProcessing) { if(!GEMINI_KEY) toggleSettings(); return; }
             
             const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!Speech) return;
+            
             const rec = new Speech();
             rec.lang = (code === 'auto') ? 'en-US' : code;
             if(code !== 'th-TH' && code !== 'auto') targetLang = code;
@@ -176,15 +176,15 @@
                 const resultIndex = e.resultIndex;
                 const msg = e.results[resultIndex][0].transcript;
                 
-                // ตรวจสอบสถานะ isFinal เพื่อป้องกันการส่งซ้ำ
+                // ตรวจสอบ isFinal เพื่อป้องกันการดึงประโยคที่ยังพูดไม่จบมาแปล (แก้ปัญหาสวัสดี 3 ครั้ง)
                 if (e.results[resultIndex].isFinal && !isProcessing) {
-                    isProcessing = true; 
+                    isProcessing = true; // ล็อคการทำงานทันที
                     addBubble(msg, 'user', name);
                     
                     addLog("AI กำลังแปล...");
                     const translation = await callAI(msg, code);
                     
-                    const outLabel = (code === 'th-TH' ? targetLang : 'ไทย');
+                    const outLabel = (code === 'th-TH' ? (name === 'ไทย' ? 'ENG' : name) : 'ไทย');
                     addBubble(translation, 'ai', outLabel);
                     
                     const utter = new SpeechSynthesisUtterance(translation);
@@ -194,7 +194,7 @@
                     utter.onend = () => { isProcessing = false; addLog("Ready"); };
                     window.speechSynthesis.speak(utter);
                     
-                    // ป้องกันค้าง (Safety Timeout)
+                    // ป้องกันการล็อคค้าง (Safety Timeout)
                     setTimeout(() => { isProcessing = false; }, 8000);
                 }
             };
