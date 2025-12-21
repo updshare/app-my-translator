@@ -84,13 +84,13 @@
             const toLang = fromCode === 'th-TH' ? (map[targetLang] || 'English') : 'Thai';
             
             try {
-                // แก้ไขเป็น Gemini 2.0 Flash ตามทางเลือกที่ 2
+                // อัปเดตเป็น Gemini 2.0 Flash (Experimental)
                 const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${API_KEY}`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         contents: [{
-                            parts: [{ text: `Translate the following to ${toLang} naturally, specifically for use in a hardware/construction store: "${text}"` }]
+                            parts: [{ text: `You are an interpreter in a construction material store. Translate the following to ${toLang} naturally: "${text}"` }]
                         }]
                     })
                 });
