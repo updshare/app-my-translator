@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -20,7 +21,6 @@
         .lang-btn { padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; background: #f8fafc; cursor: pointer; display: flex; flex-direction: column; align-items: center; font-size: 11px; }
         .lang-btn.primary { background: #1e293b; color: white; }
 
-        /* UI สถานะขณะฟัง */
         #status-ui { display: none; text-align: center; padding: 20px; background: #fff1f2; border-radius: 16px; border: 2px solid #f43f5e; margin-bottom: 12px; }
         .listening-dot { width: 12px; height: 12px; background: #f43f5e; border-radius: 50%; display: inline-block; animation: pulse 1s infinite; margin-right: 8px; }
         @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.5; } }
@@ -64,8 +64,10 @@
     <div id="modal-settings" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:1000;">
         <div style="background:white; padding:24px; border-radius:20px; width:90%; max-width:400px;">
             <h3>🔑 ใส่ Gemini API Key</h3>
+            <p style="font-size: 12px; color: #666; margin-top: 5px;">คัดลอก API Key จาก Google AI Studio มาวางที่นี่</p>
             <input type="password" id="api-input" placeholder="Paste your API key here" style="width:100%; padding:12px; margin:15px 0; border:1px solid #ccc; border-radius:8px;">
-            <button onclick="saveKey()" style="width:100%; padding:12px; background:#f97316; color:white; border:none; border-radius:8px; width:100%;">บันทึกและเริ่มใหม่</button>
+            <button onclick="saveKey()" style="width:100%; padding:12px; background:#f97316; color:white; border:none; border-radius:8px;">บันทึกและเริ่มใหม่</button>
+            <button onclick="document.getElementById('modal-settings').style.display='none'" style="width:100%; padding:10px; background:none; border:none; color:#666; margin-top:10px;">ยกเลิก</button>
         </div>
     </div>
 
@@ -81,21 +83,39 @@
         function clearChat() { if(confirm('ล้างการสนทนาทั้งหมด?')) document.getElementById('chat-area').innerHTML = ''; }
 
         async function translateAPI(text, fromCode) {
+            if (!API_KEY) return "⚠️ กรุณาตั้งค่า API Key";
+
             const map = {'en-US':'English','my-MM':'Burmese','lo-LA':'Lao','km-KH':'Khmer','zh-CN':'Chinese','ja-JP':'Japanese','ko-KR':'Korean','de-DE':'German'};
             const toLang = fromCode === 'th-TH' ? (map[targetLang] || 'English') : 'Thai';
             
             try {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`, {
+                // แก้ไขโครงสร้าง Fetch ให้ตรงกับ Gemini 1.5
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ contents: [{parts: [{text: `Translate to ${toLang} (natural conversation): "${text}"`}]}] })
+                    body: JSON.stringify({ 
+                        contents: [{
+                            parts: [{text: `Translate this to ${toLang} (natural conversation, no extra text): "${text}"`}]
+                        }] 
+                    })
                 });
+
                 const data = await res.json();
-                if (data.error) throw new Error(data.error.message);
-                return data.candidates[0].content.parts[0].text.trim();
+                
+                if (data.error) {
+                    console.error("API Error:", data.error.message);
+                    return `⚠️ API Error: ${data.error.message}`;
+                }
+
+                if (data.candidates && data.candidates[0].content) {
+                    return data.candidates[0].content.parts[0].text.trim();
+                }
+                
+                return "⚠️ ไม่พบผลลัพธ์การแปล";
+
             } catch (e) {
-                console.error(e);
-                return "⚠️ แปลไม่ได้ (ตรวจสอบ API Key หรืออินเทอร์เน็ต)";
+                console.error("Fetch Error:", e);
+                return "⚠️ แปลไม่ได้ (ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต)";
             }
         }
 
@@ -103,7 +123,7 @@
             window.speechSynthesis.cancel();
             const u = new SpeechSynthesisUtterance(text);
             u.lang = code;
-            u.rate = 1.0; 
+            u.rate = 1.1; 
             u.onend = () => { isBusy = false; };
             window.speechSynthesis.speak(u);
         }
@@ -128,20 +148,18 @@
 
             recognition.onresult = (e) => {
                 clearTimeout(silenceTimer); 
-                
                 let interim = '';
                 for (let i = e.resultIndex; i < e.results.length; ++i) {
                     if (e.results[i].isFinal) finalResult += e.results[i][0].transcript;
                     else interim = e.results[i][0].transcript;
                 }
 
-                // *** ตั้งเวลาหยุด 2.2 วินาที (กำลังดีสำหรับการเว้นจังหวะหายใจ) ***
                 silenceTimer = setTimeout(() => {
                     if (finalResult || interim) {
                         finalResult = finalResult || interim;
                         recognition.stop();
                     }
-                }, 2200);
+                }, 2000); // หยุดรอ 2 วินาที
             };
 
             recognition.onend = async () => {
@@ -152,8 +170,12 @@
                     isBusy = true;
                     addMsg(finalResult, 'user', name);
                     const translated = await translateAPI(finalResult, code);
-                    addMsg(translated, 'ai', code === 'th-TH' ? name : 'ไทย');
-                    speak(translated, code === 'th-TH' ? targetLang : 'th-TH');
+                    
+                    const displayLang = code === 'th-TH' ? name : 'ไทย';
+                    addMsg(translated, 'ai', displayLang);
+                    
+                    const voiceCode = code === 'th-TH' ? targetLang : 'th-TH';
+                    speak(translated, voiceCode);
                 } else {
                     isBusy = false;
                 }
@@ -162,6 +184,7 @@
             recognition.onerror = (err) => {
                 console.error("Speech Error:", err.error);
                 recognition.stop();
+                isBusy = false;
             };
 
             recognition.start();
@@ -176,7 +199,7 @@
             area.scrollTop = area.scrollHeight;
         }
 
-        if(!API_KEY) openSettings();
+        window.onload = () => { if(!API_KEY) openSettings(); };
     </script>
 </body>
 </html>
