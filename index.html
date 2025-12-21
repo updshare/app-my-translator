@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>AI ล่ามร้านวัสดุ V7.0 (Smart Mode)</title>
+    <title>AI ล่ามร้านวัสดุ V7.0 (Gemini 2.0 Flash)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
@@ -83,13 +84,13 @@
             const toLang = fromCode === 'th-TH' ? (map[targetLang] || 'English') : 'Thai';
             
             try {
-                // เรียกใช้ gemini-1.5-flash-latest ตามคู่มือ Google
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`, {
+                // แก้ไขเป็น Gemini 2.0 Flash ตามทางเลือกที่ 2
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${API_KEY}`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         contents: [{
-                            parts: [{ text: `Translate to ${toLang} (natural talk): "${text}"` }]
+                            parts: [{ text: `Translate the following to ${toLang} naturally, specifically for use in a hardware/construction store: "${text}"` }]
                         }]
                     })
                 });
@@ -168,4 +169,3 @@
     </script>
 </body>
 </html>
-
